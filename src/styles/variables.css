@@ -1,0 +1,32 @@
+:root {
+  /* Default Theme (Light/Clean) */
+  --bg-color: #ffffff;
+  --text-main: #333333;
+  --text-accent: #666666;
+  --primary-color: #3b82f6; /* Blue 500 */
+  --font-main: 'Inter', system-ui, sans-serif;
+  --slide-aspect-ratio: 16/9;
+  --slide-width: 960px;
+  --slide-height: 540px;
+}
+
+body.theme-dark {
+  --bg-color: #1a1a1a;
+  --text-main: #f3f4f6;
+  --text-accent: #9ca3af;
+  --primary-color: #60a5fa; /* Blue 400 */
+}
+
+body.theme-ocean {
+  --bg-color: #f0f9ff;
+  --text-main: #0c4a6e;
+  --text-accent: #0369a1;
+  --primary-color: #0ea5e9; /* Sky 500 */
+}
+
+body.theme-sunset {
+  --bg-color: #fff7ed;
+  --text-main: #7c2d12;
+  --text-accent: #ea580c;
+  --primary-color: #f97316; /* Orange 500 */
+}
