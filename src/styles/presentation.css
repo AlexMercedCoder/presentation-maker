@@ -1,0 +1,40 @@
+/* Presentation Mode overrides */
+body.mode-presentation #app {
+  grid-template-areas: "canvas";
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  background: black;
+}
+
+body.mode-presentation .sidebar,
+body.mode-presentation .toolbar {
+  display: none;
+}
+
+body.mode-presentation .slide-container-wrapper {
+  background: black;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.mode-presentation .slide-container {
+  /* Scale to fit logic could go here, or simple max-width */
+  transform: scale(1.5); /* Temporary fixed scale for demo */
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Hide scrollbars in presentation */
+body.mode-presentation ::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide edit cursor */
+body.mode-presentation [contenteditable] {
+  cursor: default;
+  outline: none;
+}

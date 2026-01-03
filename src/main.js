@@ -1,41 +1,45 @@
 import './styles/style.css';
+import './styles/modal.css';
+import './styles/presentation.css';
 import { store } from './core/Store';
-import { LayoutEngine } from './layouts/LayoutEngine';
+import { Sidebar } from './components/Sidebar';
+import { Toolbar } from './components/Toolbar';
+import { EditorCanvas } from './components/EditorCanvas';
+import { QRCodeModal } from './components/QRCodeModal';
+import { PresentationController } from './core/PresentationController';
+
+// Init Controller
+PresentationController.init();
 
 const app = document.querySelector('#app');
 
 function render() {
-  const activeSlide = store.activeSlide;
-  const currentTheme = store.theme;
-  
-  // Apply theme class to body
-  document.body.className = `theme-${currentTheme}`;
+  // Apply theme class globally
+  document.body.className = `theme-${store.theme}`;
 
-  // Render Slide
-  const slideHTML = LayoutEngine.render(activeSlide);
-  
+  // Assemble the UI
   app.innerHTML = `
-    <div class="slide-container">
-      ${slideHTML}
+    ${Sidebar.render()}
+    ${Toolbar.render()}
+    <div class="slide-container-wrapper">
+      <div class="slide-container">
+        ${EditorCanvas.render()}
+      </div>
     </div>
-    <div class="controls">
-      <button id="add-slide">Add Slide</button>
-      <button id="toggle-theme">Toggle Theme</button>
-      <span style="align-self: center; margin-left: 10px;">Slide ${store.slides.findIndex(s => s.id === activeSlide?.id) + 1} / ${store.slides.length}</span>
-    </div>
+    ${QRCodeModal.render()} 
   `;
 
-  // Attach Events (Simple delegation or direct attach for Phase 1)
-  document.getElementById('add-slide').addEventListener('click', () => {
-    store.addSlide('title-body');
-  });
+  // Attach Component Events
+  const sidebarEl = app.querySelector('.sidebar');
+  if (sidebarEl) Sidebar.attachEvents(sidebarEl);
 
-  document.getElementById('toggle-theme').addEventListener('click', () => {
-    const themes = ['default', 'dark', 'ocean', 'sunset'];
-    const currentIdx = themes.indexOf(store.theme);
-    const nextTheme = themes[(currentIdx + 1) % themes.length];
-    store.setTheme(nextTheme);
-  });
+  const toolbarEl = app.querySelector('.toolbar');
+  if (toolbarEl) Toolbar.attachEvents(toolbarEl);
+
+  const canvasEl = app.querySelector('.slide-container');
+  if (canvasEl) EditorCanvas.attachEvents(canvasEl);
+
+  QRCodeModal.attachEvents();
 }
 
 // Initial Render
@@ -44,5 +48,5 @@ render();
 // Subscribe to Store
 store.subscribe(render);
 
-// Load saved state (optional for now)
+// Load saved state
 store.loadFromLocal();

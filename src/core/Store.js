@@ -38,7 +38,15 @@ class Store {
         elements: []
       }
     };
-    this.state.slides.push(newSlide);
+    
+    // Insert after active slide
+    const activeIndex = this.state.slides.findIndex(s => s.id === this.state.activeSlideId);
+    if (activeIndex !== -1) {
+      this.state.slides.splice(activeIndex + 1, 0, newSlide);
+    } else {
+      this.state.slides.push(newSlide);
+    }
+
     this.setActiveSlide(newSlide.id);
   }
 
@@ -58,10 +66,43 @@ class Store {
     this.notify();
   }
 
+  reorderSlide(fromIndex, toIndex) {
+    if (fromIndex < 0 || fromIndex >= this.state.slides.length || 
+        toIndex < 0 || toIndex >= this.state.slides.length) return;
+
+    const [movedSlide] = this.state.slides.splice(fromIndex, 1);
+    this.state.slides.splice(toIndex, 0, movedSlide);
+    this.notify();
+  }
+
+  moveSlideUp(id) {
+    const index = this.state.slides.findIndex(s => s.id === id);
+    if (index > 0) {
+      this.reorderSlide(index, index - 1);
+    }
+  }
+
+  moveSlideDown(id) {
+    const index = this.state.slides.findIndex(s => s.id === id);
+    if (index !== -1 && index < this.state.slides.length - 1) {
+      this.reorderSlide(index, index + 1);
+    }
+  }
+
   updateSlideContent(id, contentUpdates) {
     const slide = this.state.slides.find(s => s.id === id);
     if (slide) {
       slide.content = { ...slide.content, ...contentUpdates };
+      // Debounce notification or simple notify for now
+      this.notify(); 
+    }
+  }
+
+  addElementToSlide(id, elementData) {
+    const slide = this.state.slides.find(s => s.id === id);
+    if (slide) {
+      if (!slide.content.elements) slide.content.elements = [];
+      slide.content.elements.push(elementData);
       this.notify();
     }
   }
@@ -73,12 +114,6 @@ class Store {
 
   setTheme(themeName) {
     this.state.meta.theme = themeName;
-    this.notify();
-  }
-
-  loadPresentation(data) {
-    // Basic validation could go here
-    this.state = data;
     this.notify();
   }
 
