@@ -101,6 +101,48 @@ export const LayoutEngine = {
             </div>
            `;
   
+        case 'code':
+          return `
+            <div class="slide layout-code">
+              <h1 ${editAttr('title')}>${content.title || 'Code Example'}</h1>
+              <div class="code-wrapper" ${editAttr('body')}>
+// Type your code here...
+function hello() {
+  console.log("Hello World");
+}
+              </div>
+            </div>
+          `;
+
+        case 'comparison':
+          return `
+            <div class="slide layout-comparison">
+               <h1 ${editAttr('title')}>${content.title || 'Comparison'}</h1>
+               <div class="comparison-col">
+                  <h2 ${editAttr('subtitle1')}>${content.subtitle1 || 'Option A'}</h2>
+                  <div class="slide-body" ${editAttr('body1')}>
+                     ${content.body1 || '<ul><li>Pros</li><li>Cons</li></ul>'}
+                  </div>
+               </div>
+               <div class="comparison-col">
+                  <h2 ${editAttr('subtitle2')}>${content.subtitle2 || 'Option B'}</h2>
+                  <div class="slide-body" ${editAttr('body2')}>
+                     ${content.body2 || '<ul><li>Pros</li><li>Cons</li></ul>'}
+                  </div>
+               </div>
+            </div>
+          `;
+
+        case 'big-list':
+          return `
+            <div class="slide layout-big-list">
+               <h1 ${editAttr('title')}>${content.title || 'Key Points'}</h1>
+               <div class="slide-body" ${editAttr('body')}>
+                 ${content.body || '<ul><li>Key Point 1</li><li>Key Point 2</li><li>Key Point 3</li></ul>'}
+               </div>
+            </div>
+          `;
+        
         default:
           return `<div class="slide">Unknown Layout: ${layout}</div>`;
       }

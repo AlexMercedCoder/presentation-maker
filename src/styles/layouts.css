@@ -156,30 +156,137 @@
   opacity: 0.7;
 }
 
-/* Gallery */
+/* Gallery Layout */
 .layout-gallery {
-  display: grid !important;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   grid-template-rows: auto 1fr;
-  gap: 20px;
+  grid-gap: 20px;
   height: 100%;
+  padding: 40px;
+}
+
+.layout-gallery h1 {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 2.5rem;
+  color: var(--primary-color);
 }
 
 .gallery-grid {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 15px;
-  height: 100%;
+  grid-gap: 15px;
 }
 
 .gallery-item {
-  background: #eee;
+  background: rgba(0,0,0,0.05);
+  border-radius: 8px;
+  min-height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #aaa;
+  color: #999;
+  font-size: 0.8rem;
+  border: 2px dashed #ddd;
+}
+
+/* Phase 10: New Layouts */
+
+/* Code Block */
+.layout-code {
+  padding: 40px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-code h1 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.code-wrapper {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 20px;
   border-radius: 8px;
-  overflow: hidden;
+  font-family: 'Fira Code', monospace;
+  overflow: auto;
+  flex-grow: 1;
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* Comparison */
+.layout-comparison {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr 1fr;
+  height: 100%;
+  padding: 40px;
+  gap: 30px;
+}
+
+.layout-comparison h1 {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.comparison-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.comparison-col h2 {
+  text-align: center;
+  border-bottom: 2px solid var(--secondary-color);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  color: var(--text-accent);
+}
+
+/* Big List */
+.layout-big-list {
+  padding: 60px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.layout-big-list h1 {
+  font-size: 3rem;
+  margin-bottom: 40px;
+  color: var(--primary-color);
+  text-align: center;
+}
+
+.layout-big-list ul {
+  list-style: none;
+  padding: 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.layout-big-list li {
+  font-size: 2.2rem;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+}
+
+.layout-big-list li::before {
+  content: '→';
+  color: var(--secondary-color);
+  margin-right: 20px;
+  font-weight: bold;
 }
 
 .gallery-item img {

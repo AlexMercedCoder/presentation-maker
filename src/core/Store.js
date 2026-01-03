@@ -2,7 +2,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 class Store {
   constructor() {
+    this.listeners = [];
     this.state = {
+      view: 'library', // 'library' or 'editor'
+      libraryIndex: [], // Array of { id, title, lastModified, theme }
+      // Current Presentation State
       meta: {
         title: 'New Presentation',
         theme: 'default',
@@ -16,26 +20,175 @@ class Store {
           font: 'Inter'
         }
       },
-      slides: [
-        {
-          id: uuidv4(),
-          layout: 'title',
-          content: {
-            title: 'Welcome to PresoMaker',
-            subtitle: 'Click to edit'
-          }
-        }
-      ],
-      activeSlideId: null
+      slides: [],
+      activeSlideId: null,
+      history: [],
+      historyIndex: -1
     };
 
-    // Initialize active slide
-    this.state.activeSlideId = this.state.slides[0].id;
-
-    this.listeners = [];
+    this._initLibrary();
   }
 
-  // --- Actions ---
+  _initLibrary() {
+    const index = localStorage.getItem('presentation_index');
+    if (index) {
+      try {
+        const parsed = JSON.parse(index);
+        this.state.libraryIndex = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.error('Failed to parse library index', e);
+        this.state.libraryIndex = [];
+      }
+    }
+
+    // Migration Check: If we have 'presentation_store' (legacy single file) but no index
+    // OR just to be safe, if we have legacy data, import it as a deck if not already done.
+    // For simplicity, let's just create a new library entry if 'presentation_store' exists
+    // and then maybe rename/clear it. 
+    // Actually, let's strictly check for legacy key.
+    const legacy = localStorage.getItem('presentation_store');
+    if (legacy && this.state.libraryIndex.length === 0) {
+      // Migrate legacy to first deck
+      try {
+        const data = JSON.parse(legacy);
+        const id = uuidv4();
+        const deck = {
+          id: id,
+          title: data.meta?.title || 'Migrated Presentation',
+          lastModified: Date.now(),
+          limit: 1 // unused
+        };
+        // Save full state
+        localStorage.setItem(`presentation_${id}`, JSON.stringify(data));
+        // Add to index
+        this.state.libraryIndex.push(deck);
+        localStorage.setItem('presentation_index', JSON.stringify(this.state.libraryIndex));
+        // Remove legacy
+        localStorage.removeItem('presentation_store');
+      } catch (e) {
+        console.error('Migration failed', e);
+      }
+    }
+  }
+
+  // --- Library Actions ---
+
+  createPresentation() {
+    const id = uuidv4();
+    const newDeck = {
+       meta: { 
+         title: 'Untitled Deck', 
+         theme: 'default', 
+         customTheme: this.state.meta?.customTheme 
+            ? JSON.parse(JSON.stringify(this.state.meta.customTheme))
+            : {
+              bg: '#ffffff',
+              surface: '#f5f5f5',
+              text: '#333333',
+              primary: '#953f8d',
+              secondary: '#3fef7d',
+              accent: '#18dcf3',
+              font: 'Inter'
+            }
+       },
+       slides: [{
+         id: uuidv4(),
+         layout: 'title',
+         content: { title: 'Title', body: 'Subtitle' }
+       }],
+       activeSlideId: null
+    };
+    newDeck.activeSlideId = newDeck.slides[0].id;
+    
+    // Save to storage
+    localStorage.setItem(`presentation_${id}`, JSON.stringify(newDeck));
+    
+    // Update Index
+    const entry = { id, title: newDeck.meta.title, lastModified: Date.now(), theme: 'default' };
+    if (!this.state.libraryIndex) this.state.libraryIndex = [];
+    this.state.libraryIndex.push(entry);
+    this._saveIndex();
+    
+    // Load it
+    this.loadPresentation(id);
+  }
+
+  loadPresentation(id) {
+    const raw = localStorage.getItem(`presentation_${id}`);
+    if (raw) {
+      const data = JSON.parse(raw);
+      
+      // Ensure customTheme exists in loaded data
+      if (!data.meta) data.meta = {};
+      
+      const defaultTheme = {
+          bg: '#ffffff',
+          surface: '#f5f5f5',
+          text: '#333333',
+          primary: '#953f8d',
+          secondary: '#3fef7d',
+          accent: '#18dcf3',
+          font: 'Inter'
+      };
+
+      if (!data.meta.customTheme) {
+        data.meta.customTheme = defaultTheme;
+      } else {
+        // Merge with defaults to ensure all keys exist
+        data.meta.customTheme = { ...defaultTheme, ...data.meta.customTheme };
+      }
+
+      this.state = {
+        ...this.state,
+        view: 'editor',
+        currentId: id, // Track which deck is open
+        ...data,
+        history: [], // Reset history for new session
+        historyIndex: -1
+      };
+      this.notify();
+    }
+  }
+
+  closePresentation() {
+    this.saveCurrentDeck();
+    this.state.view = 'library';
+    this.state.currentId = null;
+    this.notify();
+  }
+
+  deletePresentation(id) {
+    if (confirm('Are you sure you want to delete this presentation?')) {
+       localStorage.removeItem(`presentation_${id}`);
+       this.state.libraryIndex = this.state.libraryIndex.filter(d => d.id !== id);
+       this._saveIndex();
+       this.notify();
+    }
+  }
+
+  saveCurrentDeck() {
+     if (!this.state.currentId) return;
+     const deckState = {
+       meta: this.state.meta,
+       slides: this.state.slides,
+       activeSlideId: this.state.activeSlideId
+     };
+     localStorage.setItem(`presentation_${this.state.currentId}`, JSON.stringify(deckState));
+     
+     // Update Index Metadata
+     const entry = this.state.libraryIndex.find(d => d.id === this.state.currentId);
+     if (entry) {
+       entry.title = this.state.meta.title;
+       entry.lastModified = Date.now();
+       entry.theme = this.state.meta.theme; // Preview theme?
+       this._saveIndex();
+     }
+  }
+
+  _saveIndex() {
+    localStorage.setItem('presentation_index', JSON.stringify(this.state.libraryIndex));
+  }
+ // --- Actions ---
 
   addSlide(layout = 'title-body') {
     const newSlide = {
@@ -159,6 +312,15 @@ class Store {
     // Theme tweaking is high frequency. Let's not spam history?
     // Or maybe we do? 
     this.state.meta.theme = 'custom';
+    if (!this.state.meta.customTheme) this.state.meta.customTheme = {
+          bg: '#ffffff',
+          surface: '#f5f5f5',
+          text: '#333333',
+          primary: '#953f8d',
+          secondary: '#3fef7d',
+          accent: '#18dcf3',
+          font: 'Inter'
+    };
     this.state.meta.customTheme[key] = value;
     this.notify();
   }
@@ -186,11 +348,58 @@ class Store {
   get theme() { return this.state.meta.theme; }
   get customTheme() { return this.state.meta.customTheme; }
 
+  // --- History ---
+
+  saveHistory() {
+    // If we are in the middle of the stack (undone some moves), truncate the future
+    if (this.state.historyIndex < this.state.history.length - 1) {
+      this.state.history = this.state.history.slice(0, this.state.historyIndex + 1);
+    }
+
+    // Push current state snapshot (deep copy of relevant parts)
+    const snapshot = JSON.parse(JSON.stringify({
+      meta: this.state.meta,
+      slides: this.state.slides,
+      activeSlideId: this.state.activeSlideId
+    }));
+
+    this.state.history.push(snapshot);
+    this.state.historyIndex++;
+    
+    // Limit history size to 50
+    if (this.state.history.length > 50) {
+      this.state.history.shift();
+      this.state.historyIndex--;
+    }
+  }
+
+  undo() {
+    if (this.state.historyIndex > 0) {
+      this.state.historyIndex--;
+      const snapshot = this.state.history[this.state.historyIndex];
+      this._restoreSnapshot(snapshot);
+    }
+  }
+
+  redo() {
+    if (this.state.historyIndex < this.state.history.length - 1) {
+      this.state.historyIndex++;
+      const snapshot = this.state.history[this.state.historyIndex];
+      this._restoreSnapshot(snapshot);
+    }
+  }
+
+  _restoreSnapshot(snapshot) {
+    this.state.meta = snapshot.meta;
+    this.state.slides = snapshot.slides;
+    this.state.activeSlideId = snapshot.activeSlideId;
+    this.notify();
+  }
+
   // --- Pub/Sub ---
 
   subscribe(listener) {
     this.listeners.push(listener);
-    // Return unsubscribe function
     return () => {
       this.listeners = this.listeners.filter(l => l !== listener);
     };
@@ -198,22 +407,9 @@ class Store {
 
   notify() {
     this.listeners.forEach(listener => listener(this.state));
-    this.saveToLocal();
-  }
-
-  saveToLocal() {
-    localStorage.setItem('preso-maker-state', JSON.stringify(this.state));
-  }
-
-  loadFromLocal() {
-    const saved = localStorage.getItem('preso-maker-state');
-    if (saved) {
-      try {
-        this.state = JSON.parse(saved);
-        this.notify();
-      } catch (e) {
-        console.error('Failed to load state', e);
-      }
+    // Persist changes
+    if (this.state.view === 'editor' && this.state.currentId) {
+       this.saveCurrentDeck();
     }
   }
 }

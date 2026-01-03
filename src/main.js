@@ -2,12 +2,14 @@ import './styles/style.css';
 import './styles/modal.css';
 import './styles/presentation.css';
 import './styles/layouts.css';
+import './styles/library.css';
 import { store } from './core/Store';
 import { Sidebar } from './components/Sidebar';
 import { Toolbar } from './components/Toolbar';
 import { EditorCanvas } from './components/EditorCanvas';
 import { QRCodeModal } from './components/QRCodeModal';
 import { ThemeEditor } from './components/ThemeEditor';
+import { Library } from './components/Library';
 import { PresentationController } from './core/PresentationController';
 
 // Init Controller
@@ -16,23 +18,36 @@ PresentationController.init();
 const app = document.querySelector('#app');
 
 function render() {
-  // Apply theme
-  if (store.theme === 'custom') {
-    const custom = store.customTheme;
-    document.body.className = ''; // Remove preset classes
-    document.body.style.setProperty('--bg-color', custom.bg);
-    document.body.style.setProperty('--surface-color', custom.surface || custom.bg);
-    document.body.style.setProperty('--text-main', custom.text);
-    document.body.style.setProperty('--text-accent', custom.accent);
-    document.body.style.setProperty('--primary-color', custom.primary);
-    document.body.style.setProperty('--secondary-color', custom.secondary || custom.accent);
-    document.body.style.setProperty('--font-main', custom.font);
+  // Apply theme only if in Editor mode
+  if (store.state.view === 'editor') {
+    if (store.theme === 'custom') {
+      const custom = store.customTheme;
+      document.body.className = ''; 
+      document.body.style.setProperty('--bg-color', custom.bg);
+      document.body.style.setProperty('--surface-color', custom.surface || custom.bg);
+      document.body.style.setProperty('--text-main', custom.text);
+      document.body.style.setProperty('--text-accent', custom.accent);
+      document.body.style.setProperty('--primary-color', custom.primary);
+      document.body.style.setProperty('--secondary-color', custom.secondary || custom.accent);
+      document.body.style.setProperty('--font-main', custom.font);
+    } else {
+      document.body.style = '';
+      document.body.className = `theme-${store.theme}`;
+    }
   } else {
-    document.body.style = ''; // Reset inline styles
-    document.body.className = `theme-${store.theme}`;
+    // Library View Theme
+    document.body.className = '';
+    document.body.style = '';
   }
 
-  // Assemble the UI
+  // View Switching
+  if (store.state.view === 'library') {
+    app.innerHTML = Library.render();
+    Library.attachEvents(app);
+    return;
+  }
+
+  // Editor View
   app.innerHTML = `
     ${Sidebar.render()}
     ${Toolbar.render()}
@@ -51,6 +66,10 @@ function render() {
 
   const toolbarEl = app.querySelector('.toolbar');
   if (toolbarEl) Toolbar.attachEvents(toolbarEl);
+  
+  // Back to Library Button Logic (Inject into Toolbar?)
+  // Actually, Toolbar needs a "Close" or "Home" button now.
+  // We'll add that in Toolbar.js next using existing DOM.
 
   const canvasEl = app.querySelector('.slide-container');
   if (canvasEl) EditorCanvas.attachEvents(canvasEl);
@@ -66,4 +85,4 @@ render();
 store.subscribe(render);
 
 // Load saved state
-store.loadFromLocal();
+// Load saved state handled by Store constructor now

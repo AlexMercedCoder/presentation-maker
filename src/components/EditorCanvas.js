@@ -56,7 +56,7 @@ export const EditorCanvas = {
     const titleEl = container.querySelector('[data-editable="title"]');
     if (titleEl) {
       titleEl.addEventListener('focus', () => store.saveHistory());
-      titleEl.addEventListener('input', (e) => {
+      titleEl.addEventListener('blur', (e) => {
         store.updateSlideContent(activeSlide.id, { title: e.target.innerText });
       });
     }
@@ -65,7 +65,7 @@ export const EditorCanvas = {
     const subtitleEl = container.querySelector('[data-editable="subtitle"]');
     if (subtitleEl) {
       subtitleEl.addEventListener('focus', () => store.saveHistory());
-      subtitleEl.addEventListener('input', (e) => {
+      subtitleEl.addEventListener('blur', (e) => {
         store.updateSlideContent(activeSlide.id, { subtitle: e.target.innerText });
       });
     }
@@ -74,7 +74,7 @@ export const EditorCanvas = {
     const bodyEl = container.querySelector('[data-editable="body"]');
     if (bodyEl) {
       bodyEl.addEventListener('focus', () => store.saveHistory());
-      bodyEl.addEventListener('input', (e) => {
+      bodyEl.addEventListener('blur', (e) => {
         store.updateSlideContent(activeSlide.id, { body: e.target.innerHTML });
       });
     }
@@ -83,7 +83,7 @@ export const EditorCanvas = {
     const notesEl = container.querySelector('.notes-input');
     if (notesEl) {
        notesEl.addEventListener('focus', () => store.saveHistory());
-       notesEl.addEventListener('input', (e) => {
+       notesEl.addEventListener('blur', (e) => {
           store.updateNotes(activeSlide.id, e.target.value);
        });
     }

@@ -8,6 +8,7 @@ export const Toolbar = {
           <strong>PresoMaker</strong>
         </div>
         <div class="toolbar-group">
+          <button id="home-btn" class="tool-btn" title="Back to Library">🏠</button>
           <button id="add-slide-btn" class="tool-btn">+ Slide</button>
           <select id="layout-select" class="tool-select">
             <option value="title">Title Only</option>
@@ -17,6 +18,9 @@ export const Toolbar = {
             <option value="stats">Statistics</option>
             <option value="quote">Quote</option>
             <option value="gallery">Gallery</option>
+            <option value="code">Code Block</option>
+            <option value="comparison">Comparison</option>
+            <option value="big-list">Big List</option>
           </select>
         </div>
         <div class="toolbar-group">
@@ -94,6 +98,11 @@ export const Toolbar = {
     // Undo/Redo
     container.querySelector('#undo-btn').addEventListener('click', () => store.undo());
     container.querySelector('#redo-btn').addEventListener('click', () => store.redo());
+
+    // Home / Back to Library
+    container.querySelector('#home-btn').addEventListener('click', () => {
+       store.closePresentation();
+    });
 
     // Export JSON
     container.querySelector('#export-json-btn').addEventListener('click', () => {

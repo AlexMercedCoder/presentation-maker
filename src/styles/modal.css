@@ -18,6 +18,7 @@
 
 .modal-content {
   background: white;
+  color: #333; /* Force dark text regardless of theme */
   padding: 20px;
   border-radius: 8px;
   width: 300px;

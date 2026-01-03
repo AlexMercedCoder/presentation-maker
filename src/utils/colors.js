@@ -19,31 +19,30 @@ export const ColorUtils = {
   },
 
   generateRandomTheme() {
-    const hue = this.random(0, 360);
-    
-    // Complementary or Analogous logic could go here. 
-    // We'll stick to a simple monochromatic + contrast strategy for safety.
-    
-    // Primary: The main hue
+    const hue = Math.floor(Math.random() * 360);
     const primary = this.hslToHex(hue, 70, 50);
+    const secondary = this.hslToHex((hue + 180) % 360, 60, 60); // Complementary
+    const accent = this.hslToHex((hue + 90) % 360, 80, 50); // Triadic
     
-    // Background: Very light version of a complimentary or same hue
-    // Let's use a very light tint of the hue
-    const bg = this.hslToHex(hue, 10, 97);
-    
-    // Text: Very dark version of the hue
-    const text = this.hslToHex(hue, 30, 15);
-    
-    // Accent: Complementary
-    const accentHue = (hue + 180) % 360;
-    const accent = this.hslToHex(accentHue, 60, 50);
+    // Background - usually light or very dark
+    const isDark = Math.random() > 0.5;
+    const bg = isDark ? '#1a1a1a' : '#ffffff';
+    const surface = isDark ? '#2a2a2a' : '#f5f5f5';
+    const text = isDark ? '#ffffff' : '#333333';
+
+    // Random Font
+    const fonts = ['Inter', 'Roboto', 'Playfair+Display', 'Montserrat', 'Lato', 'Courier+Prime'];
+    const font = fonts[Math.floor(Math.random() * fonts.length)]; // URL encoded names
+    const fontName = font.replace('+', ' ');
 
     return {
-      bg,
-      text,
       primary,
+      secondary,
       accent,
-      font: 'Inter' // Keep font default or randomize if we wanted
+      bg,
+      surface,
+      text,
+      font: fontName
     };
   }
 };

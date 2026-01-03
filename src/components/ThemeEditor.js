@@ -77,16 +77,20 @@ export const ThemeEditor = {
     // Randomize
     container.querySelector('#theme-random-btn').addEventListener('click', () => {
       const theme = ColorUtils.generateRandomTheme();
+      
+      // Update Store
       store.setCustomThemeProperty('bg', theme.bg);
       store.setCustomThemeProperty('text', theme.text);
       store.setCustomThemeProperty('primary', theme.primary);
       store.setCustomThemeProperty('accent', theme.accent);
-      
+      store.setCustomThemeProperty('font', theme.font); // Added font to store
+
       // Re-render inputs to reflect new values (lazy way: finding them one by one)
       container.querySelector('input[data-key="bg"]').value = theme.bg;
       container.querySelector('input[data-key="text"]').value = theme.text;
       container.querySelector('input[data-key="primary"]').value = theme.primary;
       container.querySelector('input[data-key="accent"]').value = theme.accent;
+      container.querySelector('select[data-key="font"]').value = theme.font; // Added font to input update
     });
     
     // Import JSON
