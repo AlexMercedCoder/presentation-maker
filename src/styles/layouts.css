@@ -1,3 +1,51 @@
+/* Basic Layouts - Injected overrides or assume structure matches LayoutEngine */
+
+.layout-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+  padding: 60px; /* Increased padding */
+}
+
+.layout-title h1 {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  color: var(--primary-color); /* Contrast pop */
+  line-height: 1.2;
+}
+
+.layout-title h2 {
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-accent);
+}
+
+.layout-title-body {
+  padding: 60px; /* Increased padding */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.layout-title-body h1 {
+  font-size: 3rem;
+  margin-bottom: 40px;
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--secondary-color, transparent); /* Visual accent */
+  padding-bottom: 10px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.layout-title-body .slide-body {
+  font-size: 1.5rem;
+  line-height: 1.6;
+  flex-grow: 1;
+}
+
 /* Pro Layouts */
 
 /* Hero */

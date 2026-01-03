@@ -20,6 +20,13 @@ export const Toolbar = {
           </select>
         </div>
         <div class="toolbar-group">
+          <label class="tool-btn">
+             Image
+             <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
+          </label>
+          <div class="toolbar-divider" style="width:1px; height:20px; background:#ddd; margin: 0 5px;"></div>
+          <button id="undo-btn" class="tool-btn" title="Undo">↶</button>
+          <button id="redo-btn" class="tool-btn" title="Redo">↷</button>
           <button id="qr-btn" class="tool-btn">QR Code</button>
           <button id="theme-toggle-btn" class="tool-btn">Preset: ${store.theme}</button>
           <button id="theme-edit-btn" class="tool-btn">🎨 Customize</button>
@@ -55,10 +62,38 @@ export const Toolbar = {
        document.getElementById('theme-editor').classList.remove('hidden');
     });
 
+    // Image Upload
+    container.querySelector('#image-upload-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const src = event.target.result;
+        const activeSlide = store.activeSlide;
+        if (activeSlide) {
+          store.addElementToSlide(activeSlide.id, {
+            type: 'image',
+            src: src,
+            x: 100, // Default position
+            y: 100,
+            width: 200, // Default size
+            height: 200
+          });
+        }
+        e.target.value = ''; // Reset
+      };
+      reader.readAsDataURL(file);
+    });
+
     // QR Code
     container.querySelector('#qr-btn').addEventListener('click', () => {
       document.getElementById('qr-modal').classList.remove('hidden');
     });
+
+    // Undo/Redo
+    container.querySelector('#undo-btn').addEventListener('click', () => store.undo());
+    container.querySelector('#redo-btn').addEventListener('click', () => store.redo());
 
     // Export JSON
     container.querySelector('#export-json-btn').addEventListener('click', () => {

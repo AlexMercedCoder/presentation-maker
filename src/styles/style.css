@@ -10,12 +10,13 @@
 body {
   font-family: var(--font-main);
   background-color: #f0f0f0;
-  color: var(--text-main);
+  color: var(--text-main); /* Ensure main text color is used */
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   transition: background-color 0.3s;
+  line-height: 1.6; /* Improved global line-height */
 }
 
 /* App Layout - Grid */
