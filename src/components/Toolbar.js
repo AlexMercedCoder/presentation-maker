@@ -12,6 +12,11 @@ export const Toolbar = {
           <select id="layout-select" class="tool-select">
             <option value="title">Title Only</option>
             <option value="title-body">Title + Body</option>
+            <option value="hero">Hero (Full)</option>
+            <option value="split-diagonal">Split Diagonal</option>
+            <option value="stats">Statistics</option>
+            <option value="quote">Quote</option>
+            <option value="gallery">Gallery</option>
           </select>
         </div>
         <div class="toolbar-group">

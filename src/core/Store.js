@@ -8,9 +8,11 @@ class Store {
         theme: 'default',
         customTheme: {
           bg: '#ffffff',
+          surface: '#f5f5f5',
           text: '#333333',
-          accent: '#666666',
-          primary: '#3b82f6',
+          primary: '#953f8d',
+          secondary: '#3fef7d',
+          accent: '#18dcf3',
           font: 'Inter'
         }
       },
@@ -127,6 +129,20 @@ class Store {
   setCustomThemeProperty(key, value) {
     this.state.meta.theme = 'custom';
     this.state.meta.customTheme[key] = value;
+    this.notify();
+  }
+
+  applyThemeJSON(json) {
+    this.state.meta.theme = 'custom';
+    const ct = this.state.meta.customTheme;
+    // Map schema: primary, secondary, accent, background, surface, text
+    if(json.primary) ct.primary = json.primary;
+    if(json.secondary) ct.secondary = json.secondary;
+    if(json.accent) ct.accent = json.accent;
+    if(json.background) ct.bg = json.background;
+    if(json.surface) ct.surface = json.surface;
+    if(json.text) ct.text = json.text;
+    
     this.notify();
   }
 

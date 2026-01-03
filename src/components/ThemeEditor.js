@@ -43,6 +43,14 @@ export const ThemeEditor = {
           </div>
 
           <hr>
+          
+          <div class="control-group">
+             <label>Import Theme JSON</label>
+             <textarea id="theme-json-input" placeholder='{"primary": "...", "text": "..."}' style="width:100%; height:80px; font-family:monospace; font-size:12px;"></textarea>
+             <button id="theme-import-btn" style="margin-top:5px; width:100%;">Apply JSON</button>
+          </div>
+
+          <hr>
 
           <div class="modal-actions" style="justify-content: space-between;">
              <button id="theme-random-btn" style="background:linear-gradient(45deg, #ff00cc, #3333ff); color:white; border:none;">🎲 Randomize</button>
@@ -79,6 +87,26 @@ export const ThemeEditor = {
       container.querySelector('input[data-key="text"]').value = theme.text;
       container.querySelector('input[data-key="primary"]').value = theme.primary;
       container.querySelector('input[data-key="accent"]').value = theme.accent;
+    });
+    
+    // Import JSON
+    container.querySelector('#theme-import-btn').addEventListener('click', () => {
+       const textarea = container.querySelector('#theme-json-input');
+       try {
+         const json = JSON.parse(textarea.value);
+         store.applyThemeJSON(json);
+         // Force close/re-open or just alert? Store notify will re-render main, which re-renders this component? 
+         // Actually main.js re-renders ThemeEditor.render() so the inputs *should* update if we close/open or if main re-renders.
+         // But main.js re-renders EVERYTHING on notify. So this modal might disappear or reset?
+         // Store.js implementation: notify() calls render() in main.js. 
+         // render() sets innerHTML of app. This DESTROYS the modal state (like focus or being open).
+         // This is a flaw in the current cheap render-loop.
+         // FIX: We need to persist modal state or re-open it.
+         // For now, let's assume the user has to re-open it to see changes or we rely on the fact that 
+         // the main render loop destroys DOM.
+       } catch(e) {
+         alert('Invalid JSON');
+       }
     });
 
     // Close

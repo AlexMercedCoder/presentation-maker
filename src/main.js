@@ -1,6 +1,7 @@
 import './styles/style.css';
 import './styles/modal.css';
 import './styles/presentation.css';
+import './styles/layouts.css';
 import { store } from './core/Store';
 import { Sidebar } from './components/Sidebar';
 import { Toolbar } from './components/Toolbar';
@@ -20,9 +21,11 @@ function render() {
     const custom = store.customTheme;
     document.body.className = ''; // Remove preset classes
     document.body.style.setProperty('--bg-color', custom.bg);
+    document.body.style.setProperty('--surface-color', custom.surface || custom.bg);
     document.body.style.setProperty('--text-main', custom.text);
     document.body.style.setProperty('--text-accent', custom.accent);
     document.body.style.setProperty('--primary-color', custom.primary);
+    document.body.style.setProperty('--secondary-color', custom.secondary || custom.accent);
     document.body.style.setProperty('--font-main', custom.font);
   } else {
     document.body.style = ''; // Reset inline styles
