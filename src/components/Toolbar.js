@@ -16,8 +16,10 @@ export const Toolbar = {
         </div>
         <div class="toolbar-group">
           <button id="qr-btn" class="tool-btn">QR Code</button>
-          <button id="theme-toggle-btn" class="tool-btn">Theme: ${store.theme}</button>
+          <button id="theme-toggle-btn" class="tool-btn">Preset: ${store.theme}</button>
+          <button id="theme-edit-btn" class="tool-btn">🎨 Customize</button>
           <button id="export-json-btn" class="tool-btn">Export JSON</button>
+          <button id="export-pdf-btn" class="tool-btn">Export PDF</button>
           <label class="tool-btn">
             Import JSON
             <input type="file" id="import-json-input" accept=".json" style="display: none;">
@@ -43,6 +45,11 @@ export const Toolbar = {
       store.setTheme(nextTheme);
     });
 
+    // Edit Theme
+    container.querySelector('#theme-edit-btn').addEventListener('click', () => {
+       document.getElementById('theme-editor').classList.remove('hidden');
+    });
+
     // QR Code
     container.querySelector('#qr-btn').addEventListener('click', () => {
       document.getElementById('qr-modal').classList.remove('hidden');
@@ -57,6 +64,26 @@ export const Toolbar = {
       document.body.appendChild(downloadAnchorNode); // required for firefox
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
+    });
+
+    // Export PDF
+    container.querySelector('#export-pdf-btn').addEventListener('click', async () => {
+      const btn = container.querySelector('#export-pdf-btn');
+      const originalText = btn.innerText;
+      btn.innerText = 'Generating...';
+      btn.disabled = true;
+      document.body.style.cursor = 'wait';
+
+      try {
+        const { exportToPDF } = await import('../utils/pdfExport');
+        await exportToPDF(store.slides, store.theme);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+        document.body.style.cursor = 'default';
+      }
     });
 
     // Import JSON

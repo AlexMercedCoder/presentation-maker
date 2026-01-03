@@ -1,4 +1,5 @@
 import { store } from '../core/Store';
+import { Icons } from '../utils/Icons';
 
 export const Sidebar = {
   render() {
@@ -12,9 +13,9 @@ export const Sidebar = {
           <div class="thumbnail-header">
             <span class="slide-num">${index + 1}</span>
             <div class="slide-actions">
-              <button class="action-btn move-up" data-id="${slide.id}" title="Move Up">▲</button>
-              <button class="action-btn move-down" data-id="${slide.id}" title="Move Down">▼</button>
-              <button class="action-btn delete-btn" data-id="${slide.id}" title="Delete">×</button>
+              <button class="action-btn move-up" data-id="${slide.id}" title="Move Up">${Icons.moveUp}</button>
+              <button class="action-btn move-down" data-id="${slide.id}" title="Move Down">${Icons.moveDown}</button>
+              <button class="action-btn delete-btn" data-id="${slide.id}" title="Delete">${Icons.delete}</button>
             </div>
           </div>
           <div class="thumbnail-preview">

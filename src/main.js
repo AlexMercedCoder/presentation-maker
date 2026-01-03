@@ -6,6 +6,7 @@ import { Sidebar } from './components/Sidebar';
 import { Toolbar } from './components/Toolbar';
 import { EditorCanvas } from './components/EditorCanvas';
 import { QRCodeModal } from './components/QRCodeModal';
+import { ThemeEditor } from './components/ThemeEditor';
 import { PresentationController } from './core/PresentationController';
 
 // Init Controller
@@ -14,8 +15,19 @@ PresentationController.init();
 const app = document.querySelector('#app');
 
 function render() {
-  // Apply theme class globally
-  document.body.className = `theme-${store.theme}`;
+  // Apply theme
+  if (store.theme === 'custom') {
+    const custom = store.customTheme;
+    document.body.className = ''; // Remove preset classes
+    document.body.style.setProperty('--bg-color', custom.bg);
+    document.body.style.setProperty('--text-main', custom.text);
+    document.body.style.setProperty('--text-accent', custom.accent);
+    document.body.style.setProperty('--primary-color', custom.primary);
+    document.body.style.setProperty('--font-main', custom.font);
+  } else {
+    document.body.style = ''; // Reset inline styles
+    document.body.className = `theme-${store.theme}`;
+  }
 
   // Assemble the UI
   app.innerHTML = `
@@ -27,6 +39,7 @@ function render() {
       </div>
     </div>
     ${QRCodeModal.render()} 
+    ${ThemeEditor.render()}
   `;
 
   // Attach Component Events
@@ -40,6 +53,7 @@ function render() {
   if (canvasEl) EditorCanvas.attachEvents(canvasEl);
 
   QRCodeModal.attachEvents();
+  ThemeEditor.attachEvents();
 }
 
 // Initial Render

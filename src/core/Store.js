@@ -5,7 +5,14 @@ class Store {
     this.state = {
       meta: {
         title: 'New Presentation',
-        theme: 'default'
+        theme: 'default',
+        customTheme: {
+          bg: '#ffffff',
+          text: '#333333',
+          accent: '#666666',
+          primary: '#3b82f6',
+          font: 'Inter'
+        }
       },
       slides: [
         {
@@ -117,6 +124,12 @@ class Store {
     this.notify();
   }
 
+  setCustomThemeProperty(key, value) {
+    this.state.meta.theme = 'custom';
+    this.state.meta.customTheme[key] = value;
+    this.notify();
+  }
+
   // --- Getters ---
 
   get slides() { return this.state.slides; }
@@ -124,6 +137,7 @@ class Store {
     return this.state.slides.find(s => s.id === this.state.activeSlideId); 
   }
   get theme() { return this.state.meta.theme; }
+  get customTheme() { return this.state.meta.customTheme; }
 
   // --- Pub/Sub ---
 
