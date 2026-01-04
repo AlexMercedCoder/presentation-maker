@@ -52,3 +52,22 @@
   background: var(--primary-color);
   color: white;
 }
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 5px;
+  line-height: 1;
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+.modal-header h2, .modal-header h3 {
+   margin: 0;
+   margin-bottom: 0 !important; /* Override legacy rules */
+}

@@ -82,6 +82,8 @@ function render() {
   
   const rightPanelEl = app.querySelector('.right-panel');
   if (rightPanelEl) NotesPanel.attachEvents(rightPanelEl);
+
+  const canvasEl = app.querySelector('.slide-container');
   if (canvasEl) EditorCanvas.attachEvents(canvasEl);
 
   QRCodeModal.attachEvents();

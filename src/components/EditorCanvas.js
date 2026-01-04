@@ -129,17 +129,78 @@ export const EditorCanvas = {
       });
     });
 
+    // --- Snap to Grid & Guides ---
+    const GUIDES_HTML = `
+       <div id="guide-v" style="position:absolute; top:0; bottom:0; left:50%; width:1px; background: cyan; z-index:100; display:none; pointer-events:none;"></div>
+       <div id="guide-h" style="position:absolute; left:0; right:0; top:50%; height:1px; background: cyan; z-index:100; display:none; pointer-events:none;"></div>
+    `;
+    
+    // Inject guides if missing
+    if (!container.querySelector('#guide-v')) {
+       const guides = document.createElement('div');
+       guides.innerHTML = GUIDES_HTML;
+       // Appending to wrapper or container? Wrapper has relative pos?
+       // Let's append to container but ensure it doesn't mess up layout. 
+       // Ideally inside the .canvas-wrapper.
+       const wrapper = container.querySelector('.canvas-wrapper');
+       if(wrapper) {
+         wrapper.insertAdjacentHTML('beforeend', GUIDES_HTML);
+       }
+    }
+
+    const guideV = container.querySelector('#guide-v');
+    const guideH = container.querySelector('#guide-h');
+    const SNAP_THRESH = 10;
+
     // --- Drag Logic ---
     const onDragMove = (e) => {
       if (!draggedElement) return;
+      const startLeft = parseFloat(draggedElement.style.left) || 0;
+      const startTop = parseFloat(draggedElement.style.top) || 0;
+      
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      draggedElement.style.left = `${initialLeft + dx}px`;
-      draggedElement.style.top = `${initialTop + dy}px`;
+      
+      let newLeft = initialLeft + dx;
+      let newTop = initialTop + dy;
+      
+      // Snap Logic (Center to Center)
+      // Canvas dimensions
+      const wrapper = container.querySelector('.canvas-wrapper');
+      const cw = wrapper.offsetWidth;
+      const ch = wrapper.offsetHeight;
+      const ew = draggedElement.offsetWidth;
+      const eh = draggedElement.offsetHeight;
+      
+      const centerX = newLeft + (ew / 2);
+      const centerY = newTop + (eh / 2);
+      
+      // Snap Vertical (Center X)
+      if (Math.abs(centerX - (cw / 2)) < SNAP_THRESH) {
+         newLeft = (cw / 2) - (ew / 2);
+         guideV.style.display = 'block';
+      } else {
+         guideV.style.display = 'none';
+      }
+
+      // Snap Horizontal (Center Y)
+      if (Math.abs(centerY - (ch / 2)) < SNAP_THRESH) {
+         newTop = (ch / 2) - (eh / 2);
+         guideH.style.display = 'block';
+      } else {
+         guideH.style.display = 'none';
+      }
+
+      draggedElement.style.left = `${newLeft}px`;
+      draggedElement.style.top = `${newTop}px`;
     };
 
     const onDragEnd = (e) => {
       if (!draggedElement) return;
+      // Hide guides
+      if(guideV) guideV.style.display = 'none';
+      if(guideH) guideH.style.display = 'none';
+
       const index = parseInt(draggedElement.dataset.index);
       
       store.updateElement(activeSlide.id, index, {
@@ -182,5 +243,32 @@ export const EditorCanvas = {
       document.removeEventListener('mousemove', onResizeMove);
       document.removeEventListener('mouseup', onResizeEnd);
     };
+    // --- Selection Logic ---
+    container.querySelectorAll('.slide-element-wrapper').forEach(el => {
+       el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Deselect others
+          container.querySelectorAll('.selected').forEach(s => s.classList.remove('selected'));
+          el.classList.add('selected');
+          
+          // Dispatch event for Toolbar
+          document.dispatchEvent(new CustomEvent('element-selected', { detail: { 
+             id: el.dataset.id,
+             // Wrapper might not have ID if LayoutEngine doesn't put it there.
+             // LayoutEngine.renderElement puts data-id? Let's check. 
+             // Actually index is usually reliable for array ops in this app.
+             index: parseInt(el.dataset.index)
+          }}));
+       });
+    });
+
+    // Deselect on Background Click
+    container.addEventListener('click', (e) => {
+       if (!e.target.closest('.slide-element-wrapper')) {
+          container.querySelectorAll('.selected').forEach(s => s.classList.remove('selected'));
+          document.dispatchEvent(new CustomEvent('element-deselected'));
+       }
+    });
+
   }
 };
