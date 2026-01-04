@@ -25,6 +25,8 @@ class Store {
       history: [],
       historyIndex: -1
     };
+    
+    this.localConfig = JSON.parse(localStorage.getItem('mercedslides_config') || '{}');
 
     this._initLibrary();
   }
@@ -344,6 +346,13 @@ class Store {
     this.notify();
   }
 
+  setTitle(newTitle) {
+      if (!newTitle.trim()) return;
+      this.state.meta.title = newTitle;
+      this.saveHistory(); // Optional: do we want undo for title changes?
+      this.notify();
+  }
+
   setTransition(type) {
     this.saveHistory();
     this.state.meta.transition = type; // 'none', 'fade', 'slide', 'zoom'
@@ -479,6 +488,16 @@ class Store {
     if (this.state.view === 'editor' && this.state.currentId) {
        this.saveCurrentDeck();
     }
+  }
+
+  // --- Configuration ---
+  getConfig() {
+     return this.localConfig;
+  }
+
+  setConfig(updates) {
+     this.localConfig = { ...this.localConfig, ...updates };
+     localStorage.setItem('mercedslides_config', JSON.stringify(this.localConfig));
   }
 }
 

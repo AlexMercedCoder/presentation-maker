@@ -3,6 +3,7 @@ import './styles/modal.css';
 import './styles/presentation.css';
 import './styles/layouts.css';
 import './styles/library.css';
+import './styles/assets.css';
 import { store } from './core/Store';
 import { Sidebar } from './components/Sidebar';
 import { Toolbar } from './components/Toolbar';
@@ -98,3 +99,16 @@ store.subscribe(render);
 
 // Load saved state
 // Load saved state handled by Store constructor now
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('SW registered: ', registration);
+      })
+      .catch(registrationError => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}

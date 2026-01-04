@@ -55,10 +55,39 @@ body {
 .brand {
   font-weight: 700;
   font-size: 1.1rem;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.title-input {
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 700;
+  font-size: 1.1rem;
+  font-family: inherit;
+  color: #333; /* Fallback */
   background: linear-gradient(135deg, var(--primary-color), var(--text-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-right: 10px;
+  width: 200px;
+  transition: all 0.2s;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.title-input:hover {
+  background: rgba(0,0,0,0.05); /* Show bg on hover */
+  -webkit-text-fill-color: initial; /* Reset gradient for readability text fill on editing? */
+  color: var(--primary-color);
+}
+
+.title-input:focus {
+  background: white;
+  border: 1px solid var(--primary-color);
+  outline: none;
+  -webkit-text-fill-color: initial;
+  color: #333;
 }
 
 .tool-group {
@@ -150,7 +179,19 @@ body {
   border-radius: 8px;
   border: 1px solid #eee;
   padding: 5px;
-  top: 110%; /* below button */
+  top: 100%; /* Attach to bottom */
+  margin-top: 5px; /* Small visual gap */
+}
+
+/* Invisible bridge to prevent closing when moving mouse over gap */
+.dropdown-content::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: transparent;
 }
 
 .dropdown:hover .dropdown-content {

@@ -29,29 +29,29 @@ export const AssetModal = {
   render() {
     return `
       <div id="asset-modal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 600px; height: 500px; display:flex; flex-direction:column;">
+        <div class="modal-content asset-modal-body">
           <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
              <h3>Insert Content</h3>
              <button id="asset-close" class="close-btn">&times;</button>
           </div>
           
-          <div class="tabs" style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:10px;">
-             <button class="tab-btn ${this.activeTab === 'images' ? 'active' : ''}" data-tab="images">Unsplash</button>
-             <button class="tab-btn ${this.activeTab === 'icons' ? 'active' : ''}" data-tab="icons">Icons</button>
-             <button class="tab-btn ${this.activeTab === 'gifs' ? 'active' : ''}" data-tab="gifs">GIPHY</button>
+          <div class="asset-tabs">
+             <button class="asset-tab-btn ${this.activeTab === 'images' ? 'active' : ''}" data-tab="images">Unsplash</button>
+             <button class="asset-tab-btn ${this.activeTab === 'icons' ? 'active' : ''}" data-tab="icons">Icons</button>
+             <button class="asset-tab-btn ${this.activeTab === 'gifs' ? 'active' : ''}" data-tab="gifs">GIPHY</button>
           </div>
           
-          <div class="search-bar" style="display:flex; gap:5px; margin-bottom:15px;">
-             <input type="text" id="asset-search" placeholder="Search..." style="flex:1;">
-             <button id="asset-search-btn">Search</button>
+          <div class="asset-search-container">
+             <input type="text" id="asset-search" class="asset-search-input" placeholder="Search curated assets...">
+             <button id="asset-search-btn" class="asset-search-btn">Search</button>
           </div>
           
-          <div id="asset-grid" class="asset-grid" style="flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+          <div id="asset-grid" class="asset-grid">
              ${this.renderGrid()}
           </div>
           
-          <div style="font-size:0.8rem; color:#888; margin-top:10px;">
-             * Demo Mode: Showing curated results.
+          <div style="font-size:0.8rem; color:#9ca3af; margin-top:10px; text-align:center;">
+             * Demo Mode: Showing curated results. Connect API keys for full search.
           </div>
         </div>
       </div>
@@ -61,20 +61,31 @@ export const AssetModal = {
   renderGrid() {
       if (this.activeTab === 'images') {
          return this.mockImages.map(url => `
-            <div class="asset-item" data-type="image" data-src="${url}" style="cursor:pointer; border:1px solid #ddd; border-radius:4px; overflow:hidden; height:100px;">
-               <img src="${url}" style="width:100%; height:100%; object-fit:cover;">
+            <div class="asset-card" data-type="image" data-src="${url}">
+               <img src="${url}" loading="lazy" />
+               <div class="asset-overlay">
+                  <div class="asset-add-icon">+</div>
+               </div>
             </div>
          `).join('');
       } else if (this.activeTab === 'icons') {
          return this.mockIcons.map(icon => `
-            <div class="asset-item" data-type="icon" data-content="${encodeURIComponent(icon.svg)}" style="cursor:pointer; border:1px solid #ddd; border-radius:4px; display:flex; align-items:center; justify-content:center; height:100px; font-size: 2rem;">
-               <div style="width:48px; height:48px;">${icon.svg.replace('width="24"', 'width="100%"').replace('height="24"', 'height="100%"')}</div>
+            <div class="asset-card" data-type="icon" data-content="${encodeURIComponent(icon.svg)}">
+               <div class="asset-card-icon">
+                  ${icon.svg.replace('width="24"', 'width="100%"').replace('height="24"', 'height="100%"')}
+               </div>
+               <div class="asset-overlay">
+                  <div class="asset-add-icon">+</div>
+               </div>
             </div>
          `).join('');
       } else if (this.activeTab === 'gifs') {
          return this.mockGifs.map(url => `
-            <div class="asset-item" data-type="image" data-src="${url}" style="cursor:pointer; border:1px solid #ddd; border-radius:4px; overflow:hidden; height:100px;">
-               <img src="${url}" style="width:100%; height:100%; object-fit:cover;">
+            <div class="asset-card" data-type="image" data-src="${url}">
+               <img src="${url}" loading="lazy" />
+               <div class="asset-overlay">
+                  <div class="asset-add-icon">GIF</div>
+               </div>
             </div>
          `).join('');
       }
@@ -115,10 +126,71 @@ export const AssetModal = {
        });
     });
 
-    // Search (Mock)
-    modal.querySelector('#asset-search-btn').addEventListener('click', () => {
+    // Search
+    modal.querySelector('#asset-search-btn').addEventListener('click', async () => {
        const term = modal.querySelector('#asset-search').value;
-       alert(`Demo search for "${term}": No API key configured. Showing default results.`);
+       const config = store.getConfig();
+       const grid = modal.querySelector('#asset-grid');
+
+       if (this.activeTab === 'images') {
+           if (config.unsplashKey) {
+               grid.innerHTML = '<div style="padding:20px; text-align:center;">Loading Unsplash...</div>';
+               try {
+                   // Using Unsplash API
+                   const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(term)}&per_page=12&client_id=${config.unsplashKey}`);
+                   const data = await res.json();
+                   
+                   if (data.results) {
+                       this.mockImages = data.results.map(img => img.urls.regular); 
+                       // Render
+                       const html = data.results.map(img => `
+                        <div class="asset-card" data-type="image" data-src="${img.urls.regular}">
+                           <img src="${img.urls.small}" loading="lazy" style="width:100%; height:100%; object-fit:cover;" />
+                           <div class="asset-overlay">
+                              <div class="asset-add-icon">+</div>
+                           </div>
+                           <div style="font-size:10px; position:absolute; bottom:2px; left:2px; color:white; text-shadow:0 1px 2px black;">${img.user.name}</div>
+                        </div>
+                       `).join('');
+                       grid.innerHTML = html;
+                   }
+               } catch (e) {
+                   console.error(e);
+                   alert('Unsplash Error: Check API Key.');
+               }
+           } else {
+               alert('Please configure Unsplash API Key in Settings > File Menu.');
+           }
+       } else if (this.activeTab === 'gifs') {
+           if (config.giphyKey) {
+                grid.innerHTML = '<div style="padding:20px; text-align:center;">Loading GIPHY...</div>';
+                try {
+                    const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${config.giphyKey}&q=${encodeURIComponent(term)}&limit=12&rating=g`);
+                    const data = await res.json();
+                    
+                    if (data.data) {
+                        this.mockGifs = data.data.map(g => g.images.original.url);
+                        const html = data.data.map(g => `
+                            <div class="asset-card" data-type="image" data-src="${g.images.original.url}">
+                               <img src="${g.images.fixed_height.url}" loading="lazy" />
+                               <div class="asset-overlay">
+                                  <div class="asset-add-icon">GIF</div>
+                               </div>
+                            </div>
+                         `).join('');
+                        grid.innerHTML = html;
+                    }
+                } catch(e) {
+                    console.error(e);
+                    alert('GIPHY Error: Check API Key.');
+                }
+           } else {
+               alert('Please configure GIPHY API Key in Settings > File Menu.');
+           }
+       } else {
+           // Icons - Mock Search
+           alert(`Searching icons for "${term}"... (Not fully implemented, showing fallback)`);
+       }
     });
     
     // Selection

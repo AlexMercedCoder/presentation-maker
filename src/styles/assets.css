@@ -1,0 +1,156 @@
+/* Asset Modal Styling */
+.asset-modal-body {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  width: 700px; /* Wider */
+  max-width: 90vw;
+}
+
+.asset-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0;
+}
+
+.asset-tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.asset-tab-btn:hover {
+  color: #333;
+  background: #f9fafb;
+}
+
+.asset-tab-btn.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.asset-search-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.asset-search-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.asset-search-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.asset-search-btn {
+  padding: 10px 20px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.asset-search-btn:hover {
+  opacity: 0.9;
+}
+
+.asset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  padding: 4px; /* Space for shadows */
+  flex: 1;
+}
+
+.asset-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  position: relative;
+  height: 120px; /* Fixed height for consistency */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.asset-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-color: var(--primary-color);
+}
+
+.asset-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.asset-card:hover img {
+  transform: scale(1.05);
+}
+
+.asset-card-icon {
+  font-size: 2.5rem;
+  color: #4b5563;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.asset-card-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.asset-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.asset-card:hover .asset-overlay {
+  opacity: 1;
+}
+
+.asset-add-icon {
+  color: white;
+  background: var(--primary-color);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}

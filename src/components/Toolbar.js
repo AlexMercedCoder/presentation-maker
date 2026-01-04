@@ -6,7 +6,13 @@ export const Toolbar = {
       <div class="toolbar">
         <div class="toolbar-section left">
            <div class="brand">
-              <strong>MercedSlides</strong>
+              <input 
+                id="deck-title-input" 
+                type="text" 
+                value="${store.state.meta.title || 'Untitled Deck'}" 
+                class="title-input"
+                title="Rename Presentation"
+              />
            </div>
            
            <div class="tool-group">
@@ -70,6 +76,8 @@ export const Toolbar = {
                    <label class="dropdown-item">
                       Upload Image <input type="file" id="image-upload-input" accept="image/*" hidden>
                    </label>
+                   <div style="border-top:1px solid #eee; margin:5px 0;"></div>
+                   <button id="settings-btn" class="dropdown-item">⚙️ Settings</button>
                 </div>
              </div>
              
@@ -87,6 +95,18 @@ export const Toolbar = {
   },
 
   attachEvents(container) {
+    // Title Input
+    const titleInput = container.querySelector('#deck-title-input');
+    if (titleInput) {
+        titleInput.addEventListener('change', (e) => {
+            store.setTitle(e.target.value);
+        });
+        // optional: blur on enter
+        titleInput.addEventListener('keydown', (e) => {
+           if(e.key === 'Enter') e.target.blur();
+        });
+    }
+
     // Add Slide
     container.querySelector('#add-slide-btn').addEventListener('click', () => {
       const layout = document.getElementById('layout-select').value;
@@ -264,6 +284,14 @@ export const Toolbar = {
     container.querySelector('#search-btn').addEventListener('click', () => {
       import('../components/SearchModal').then(m => m.SearchModal.toggle());
     });
+    
+    // Settings
+    const settingsBtn = container.querySelector('#settings-btn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+           import('../components/SettingsModal').then(m => m.SettingsModal.toggle());
+        });
+    }
     
     // Assets
     container.querySelector('#asset-btn').addEventListener('click', () => {
