@@ -6,16 +6,18 @@ export const EditorCanvas = {
     const activeSlide = store.activeSlide;
     if (!activeSlide) return '<div class="no-slide">No slide selected</div>';
 
+    // Determine transition class
+    const transitionType = store.state.meta.transition || 'none';
+    const transitionClass = transitionType !== 'none' ? `trans-${transitionType}` : '';
+
     // We pass 'true' for editable mode
     return `
-      ${LayoutEngine.render(activeSlide, true)}
-      <div class="presenter-notes-area" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px;">
-         <label style="font-size: 0.8rem; color: #666;">Presenter Notes</label>
-         <textarea class="notes-input" placeholder="Type your speaker notes here..." style="width: 100%; height: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px;">${activeSlide.content.notes || ''}</textarea>
+      <div class="canvas-wrapper ${transitionClass}"> 
+         ${LayoutEngine.render(activeSlide, true)}
       </div>
     `;
   },
-
+  
   attachEvents(container) {
     const activeSlide = store.activeSlide;
     if (!activeSlide) return;
@@ -79,38 +81,56 @@ export const EditorCanvas = {
       });
     }
     
-    // Notes Editing
-    const notesEl = container.querySelector('.notes-input');
-    if (notesEl) {
-       notesEl.addEventListener('focus', () => store.saveHistory());
-       notesEl.addEventListener('blur', (e) => {
-          store.updateNotes(activeSlide.id, e.target.value);
-       });
-    }
+    // Notes Editing handled by NotesPanel now
+    
+    // Toggle Notes
+    // Logic removed.
 
-    // Element Drag & Drop
+    // Element Drag & Drop & Resize
     let draggedElement = null;
-    let startX, startY, initialLeft, initialTop;
+    let resizingElement = null;
+    let startX, startY, initialLeft, initialTop, initialWidth, initialHeight;
+    const MIN_SIZE = 50;
 
-    container.querySelectorAll('img[style*="position: absolute"]').forEach((el, index) => {
-      // Add index to identify which element in the array it is
-      el.dataset.elementIndex = index;
-      
-      el.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // Prevent native drag
-        store.saveHistory(); // Save state before drag starts
-        draggedElement = el;
+    // Handle Image & Resize Mousedown
+    container.querySelectorAll('.slide-element-wrapper').forEach((wrapper) => {
+      const img = wrapper.querySelector('img');
+      const handle = wrapper.querySelector('.resize-handle');
+      const index = parseInt(wrapper.dataset.index);
+
+      // Drag Move
+      img.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        store.saveHistory();
+        draggedElement = wrapper;
         startX = e.clientX;
         startY = e.clientY;
-        initialLeft = parseInt(el.style.left || 0);
-        initialTop = parseInt(el.style.top || 0);
+        initialLeft = parseInt(wrapper.style.left || 0);
+        initialTop = parseInt(wrapper.style.top || 0);
         
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      });
+
+      // Resize
+      handle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        store.saveHistory();
+        resizingElement = wrapper;
+        startX = e.clientX;
+        startY = e.clientY;
+        initialWidth = parseInt(img.style.width);
+        initialHeight = parseInt(img.style.height);
+        
+        document.addEventListener('mousemove', onResizeMove);
+        document.addEventListener('mouseup', onResizeEnd);
       });
     });
 
-    const onMouseMove = (e) => {
+    // --- Drag Logic ---
+    const onDragMove = (e) => {
       if (!draggedElement) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
@@ -118,19 +138,49 @@ export const EditorCanvas = {
       draggedElement.style.top = `${initialTop + dy}px`;
     };
 
-    const onMouseUp = (e) => {
+    const onDragEnd = (e) => {
       if (!draggedElement) return;
+      const index = parseInt(draggedElement.dataset.index);
       
-      // Update Store
-      const index = parseInt(draggedElement.dataset.elementIndex);
       store.updateElement(activeSlide.id, index, {
         x: parseInt(draggedElement.style.left),
         y: parseInt(draggedElement.style.top)
       });
 
       draggedElement = null;
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup', onDragEnd);
+    };
+
+    // --- Resize Logic ---
+    const onResizeMove = (e) => {
+      if (!resizingElement) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      
+      const newWidth = Math.max(MIN_SIZE, initialWidth + dx);
+      // Maintain Aspect Ratio? For now, free resize.
+      // To lock aspect ratio: newHeight = newWidth * (initialHeight / initialWidth)
+      const newHeight = Math.max(MIN_SIZE, initialHeight + dy);
+
+      const img = resizingElement.querySelector('img');
+      img.style.width = `${newWidth}px`;
+      img.style.height = `${newHeight}px`;
+    };
+
+    const onResizeEnd = (e) => {
+      if (!resizingElement) return;
+      const index = parseInt(resizingElement.dataset.index);
+      const img = resizingElement.querySelector('img');
+
+      store.updateElement(activeSlide.id, index, {
+        width: parseInt(img.style.width),
+        height: parseInt(img.style.height)
+      });
+
+      resizingElement = null;
+      document.removeEventListener('mousemove', onResizeMove);
+      document.removeEventListener('mouseup', onResizeEnd);
     };
   }
 };

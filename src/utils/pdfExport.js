@@ -5,44 +5,40 @@ import { LayoutEngine } from '../layouts/LayoutEngine';
 export async function exportToPDF(slides, theme) {
   if (!slides || slides.length === 0) return;
 
-  const width = 960;
-  const height = 540;
+  // Use fixed 16:9 resolution for capture
+  const width = 1280; 
+  const height = 720;
   
+  // Initialize jsPDF in Landscape
+  // unit: 'px' matches canvas pixels
+  // hotfixes: 'px_scaling' ensures 1px = 1px in PDF logic regardless of device pixel ratio
   const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'px',
-    format: [width, height]
+    format: [width, height],
+    hotfixes: ['px_scaling']
   });
 
   // Create a hidden container for rendering
   const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.top = '-9999px';
-  container.style.left = '-9999px';
+  container.style.position = 'fixed'; // Fixed prevents scroll interference
+  container.style.top = '-10000px';
+  container.style.left = '-10000px';
   container.style.width = `${width}px`;
   container.style.height = `${height}px`;
-  // Important: Apply the theme class to the container or a wrapper
-  // We'll mimic the app structure: body.theme-X -> .slide-container
+  container.style.overflow = 'hidden';
+  container.style.zIndex = '-1';
+  
+  // Wrapper for Theme Scope
   const wrapper = document.createElement('div');
-  wrapper.className = `theme-${theme}`; // Simulate theme scope
-  
-  // We need the CSS variables to apply. Since they are on 'body.theme-X', 
-  // and we appended to body, if we give the wrapper the class, variables should inherit 
-  // IF the wrapper is attached to body. But variables are commonly on 'body.theme-X'.
-  // Best bet: Temporarily force the body theme, or rely on the fact that we append to document.body 
-  // which ALREADY has the theme class if the user didn't change it.
-  // SAFE WAY: Explicitly set the variables on the container if needed, OR just trust global styles
-  // since we append to document.body.
-  
-  // Actually, styles rely on `var(--bg-color)` etc.
-  // The rendering logic LayoutEngine returns HTML that assumes it's inside a .slide.
-  // And .slide-container sets the background.
+  wrapper.className = `theme-${theme}`; // Scope theme
   
   const slideContainer = document.createElement('div');
   slideContainer.className = 'slide-container';
-  slideContainer.style.width = '100%';
-  slideContainer.style.height = '100%';
-  slideContainer.style.transform = 'none'; // Ensure no scale
+  slideContainer.style.width = width + 'px'; // Explicit pixels
+  slideContainer.style.height = height + 'px';
+  slideContainer.style.transform = 'none';
+  slideContainer.style.border = 'none'; // Ensure no border offsets
   
   wrapper.appendChild(slideContainer);
   container.appendChild(wrapper);
@@ -53,21 +49,29 @@ export async function exportToPDF(slides, theme) {
       const slide = slides[i];
       
       // Render slide HTML
-      slideContainer.innerHTML = LayoutEngine.render(slide, false); // false = not editable
+      slideContainer.innerHTML = LayoutEngine.render(slide, false);
       
-      // Wait for DOM
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for DOM & Images
+      // A slightly longer delay helps high-res images load/paint
+      await new Promise(resolve => setTimeout(resolve, 150));
 
-      // Capture
+      // Capture with html2canvas
+      // scale: 1 is fine if we set width/height to HD (1280x720)
+      // Increasing scale adds quality but file size. 1.5 is a good balance.
       const canvas = await html2canvas(slideContainer, {
-        scale: 2, // Higher res
+        scale: 1.5,
+        width: width,
+        height: height,
         useCORS: true,
-        logging: false
+        logging: false,
+        backgroundColor: null // Transparent capture, relies on CSS background
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-      if (i > 0) doc.addPage([width, height]);
+      if (i > 0) doc.addPage([width, height], 'landscape');
+      
+      // Explicitly fit image to page dimensions
       doc.addImage(imgData, 'JPEG', 0, 0, width, height);
     }
 

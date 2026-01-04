@@ -11,6 +11,7 @@ import { QRCodeModal } from './components/QRCodeModal';
 import { ThemeEditor } from './components/ThemeEditor';
 import { Library } from './components/Library';
 import { PresentationController } from './core/PresentationController';
+import { NotesPanel } from './components/NotesPanel';
 
 // Init Controller
 PresentationController.init();
@@ -18,11 +19,19 @@ PresentationController.init();
 const app = document.querySelector('#app');
 
 function render() {
+  // Manage Theme Classes carefully to preserve 'mode-presentation'
+  const isPresentation = document.body.classList.contains('mode-presentation');
+  
+  // Reset ONLY theme classes (assuming single theme class or style override)
+  // Actually, simplest is to reconstruction className
+  let classList = [];
+  if (isPresentation) classList.push('mode-presentation');
+
   // Apply theme only if in Editor mode
   if (store.state.view === 'editor') {
     if (store.theme === 'custom') {
       const custom = store.customTheme;
-      document.body.className = ''; 
+      document.body.className = classList.join(' '); 
       document.body.style.setProperty('--bg-color', custom.bg);
       document.body.style.setProperty('--surface-color', custom.surface || custom.bg);
       document.body.style.setProperty('--text-main', custom.text);
@@ -32,11 +41,12 @@ function render() {
       document.body.style.setProperty('--font-main', custom.font);
     } else {
       document.body.style = '';
-      document.body.className = `theme-${store.theme}`;
+      classList.push(`theme-${store.theme}`);
+      document.body.className = classList.join(' ');
     }
   } else {
     // Library View Theme
-    document.body.className = '';
+    document.body.className = classList.join(' ');
     document.body.style = '';
   }
 
@@ -56,6 +66,9 @@ function render() {
         ${EditorCanvas.render()}
       </div>
     </div>
+    <div class="right-panel">
+       ${NotesPanel.render()}
+    </div>
     ${QRCodeModal.render()} 
     ${ThemeEditor.render()}
   `;
@@ -67,11 +80,8 @@ function render() {
   const toolbarEl = app.querySelector('.toolbar');
   if (toolbarEl) Toolbar.attachEvents(toolbarEl);
   
-  // Back to Library Button Logic (Inject into Toolbar?)
-  // Actually, Toolbar needs a "Close" or "Home" button now.
-  // We'll add that in Toolbar.js next using existing DOM.
-
-  const canvasEl = app.querySelector('.slide-container');
+  const rightPanelEl = app.querySelector('.right-panel');
+  if (rightPanelEl) NotesPanel.attachEvents(rightPanelEl);
   if (canvasEl) EditorCanvas.attachEvents(canvasEl);
 
   QRCodeModal.attachEvents();

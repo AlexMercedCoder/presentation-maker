@@ -39,3 +39,31 @@ body.mode-presentation [contenteditable] {
   cursor: default;
   outline: none;
 }
+
+/* Transitions (Presentation Mode Only) */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1.5); opacity: 1; } /* Target 1.5 matches presentation scale */
+}
+
+body.mode-presentation .slide-container-wrapper.trans-fade .slide-container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+body.mode-presentation .slide-container-wrapper.trans-slide .slide-container {
+  animation: slideInRight 0.5s ease-out;
+}
+
+body.mode-presentation .slide-container-wrapper.trans-zoom .slide-container {
+  animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}

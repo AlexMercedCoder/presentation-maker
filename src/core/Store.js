@@ -88,8 +88,10 @@ class Store {
               primary: '#953f8d',
               secondary: '#3fef7d',
               accent: '#18dcf3',
+              accent: '#18dcf3',
               font: 'Inter'
-            }
+            },
+         transition: 'none'
        },
        slides: [{
          id: uuidv4(),
@@ -337,6 +339,60 @@ class Store {
     if(json.text) ct.text = json.text;
     
     this.notify();
+  }
+
+  setTransition(type) {
+    this.saveHistory();
+    this.state.meta.transition = type; // 'none', 'fade', 'slide', 'zoom'
+    this.notify();
+  }
+
+  // --- Import / Export ---
+
+  exportPresentation(id) {
+    const raw = localStorage.getItem(`presentation_${id}`);
+    if (!raw) return null;
+    return raw; // Already JSON string
+  }
+
+  importPresentation(jsonString) {
+    try {
+      const data = JSON.parse(jsonString);
+      
+      // Validation basics
+      if (!data.meta || !data.slides) throw new Error("Invalid presentation format");
+
+      const newId = uuidv4();
+      
+      // Sanitize / Re-ID
+      data.id = newId; // Ensure internal ID matches storage key if we track it there
+      // We don't strictly track ID inside the blob for consistency, but good practice.
+      
+      const newDeck = {
+        ...data,
+        activeSlideId: data.slides[0]?.id || null
+      };
+
+      // Save content
+      localStorage.setItem(`presentation_${newId}`, JSON.stringify(newDeck));
+
+      // Add to Index
+      const entry = { 
+        id: newId, 
+        title: newDeck.meta.title || 'Imported Presentation', 
+        lastModified: Date.now(), 
+        theme: newDeck.meta.theme || 'default' 
+      };
+      
+      this.state.libraryIndex.push(entry);
+      this._saveIndex();
+      
+      return newId; // Return ID so UI can open it immediately if desired
+    } catch (e) {
+      console.error("Import failed", e);
+      alert("Failed to import presentation. Invalid file.");
+      return null;
+    }
   }
 
   // --- Getters ---

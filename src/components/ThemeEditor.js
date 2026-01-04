@@ -1,15 +1,30 @@
 import { store } from '../core/Store';
 import { ColorUtils } from '../utils/colors';
+import { THEME_PRESETS } from '../utils/presets';
 
 export const ThemeEditor = {
   render() {
     // Only show values if current theme is custom, otherwise default to stored custom values
     const settings = store.customTheme || {};
 
+    const presetsHTML = THEME_PRESETS.map(p => `
+      <button class="preset-btn" data-preset='${JSON.stringify(p)}' title="${p.name}" style="background: ${p.bg}; border: 1px solid #ccc; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; position: relative; overflow: hidden;">
+         <div style="position: absolute; top:0; left:0; width:50%; height:100%; background: ${p.primary}; opacity: 0.5;"></div>
+      </button>
+    `).join('');
+
     return `
       <div id="theme-editor" class="modal-overlay hidden">
-        <div class="modal-content theme-modal">
+        <div class="modal-content theme-modal" style="max-height: 90vh; overflow-y: auto;">
           <h3>Theme Editor</h3>
+          
+          <div class="control-group">
+             <label>Quick Presets</label>
+             <div class="preset-grid" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+                ${presetsHTML}
+             </div>
+          </div>
+          <hr>
           
           <div class="control-group">
             <label>Background</label>
@@ -39,6 +54,18 @@ export const ThemeEditor = {
               <option value="Playfair Display" ${settings.font === 'Playfair Display' ? 'selected' : ''}>Playfair Display (Serif)</option>
               <option value="Montserrat" ${settings.font === 'Montserrat' ? 'selected' : ''}>Montserrat (Sans)</option>
               <option value="Lato" ${settings.font === 'Lato' ? 'selected' : ''}>Lato (Sans)</option>
+              <option value="Courier Prime" ${settings.font === 'Courier Prime' ? 'selected' : ''}>Courier Prime (Mono)</option>
+            </select>
+          </div>
+
+
+          <div class="control-group">
+            <label>Transition</label>
+            <select id="transition-select">
+              <option value="none" ${store.state.meta.transition === 'none' ? 'selected' : ''}>None</option>
+              <option value="fade" ${store.state.meta.transition === 'fade' ? 'selected' : ''}>Fade</option>
+              <option value="slide" ${store.state.meta.transition === 'slide' ? 'selected' : ''}>Slide</option>
+              <option value="zoom" ${store.state.meta.transition === 'zoom' ? 'selected' : ''}>Zoom</option>
             </select>
           </div>
 
@@ -67,8 +94,35 @@ export const ThemeEditor = {
     const container = document.getElementById('theme-editor');
     if (!container) return;
 
+    // Transition Select
+    const transSelect = container.querySelector('#transition-select');
+    if (transSelect) {
+      transSelect.addEventListener('change', (e) => {
+        store.setTransition(e.target.value);
+      });
+    }
+
+    // Preset Buttons
+    container.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+         const theme = JSON.parse(btn.dataset.preset);
+         store.setCustomThemeProperty('bg', theme.bg);
+         store.setCustomThemeProperty('text', theme.text);
+         store.setCustomThemeProperty('primary', theme.primary);
+         store.setCustomThemeProperty('accent', theme.accent);
+         store.setCustomThemeProperty('font', theme.font);
+         
+         // Update inputs
+         container.querySelector('input[data-key="bg"]').value = theme.bg;
+         container.querySelector('input[data-key="text"]').value = theme.text;
+         container.querySelector('input[data-key="primary"]').value = theme.primary;
+         container.querySelector('input[data-key="accent"]').value = theme.accent;
+         container.querySelector('select[data-key="font"]').value = theme.font;
+      });
+    });
+
     // Inputs
-    container.querySelectorAll('input[type="color"], select').forEach(input => {
+    container.querySelectorAll('input[type="color"], select[data-key]').forEach(input => {
       input.addEventListener('input', (e) => {
         store.setCustomThemeProperty(e.target.dataset.key, e.target.value);
       });
@@ -99,15 +153,6 @@ export const ThemeEditor = {
        try {
          const json = JSON.parse(textarea.value);
          store.applyThemeJSON(json);
-         // Force close/re-open or just alert? Store notify will re-render main, which re-renders this component? 
-         // Actually main.js re-renders ThemeEditor.render() so the inputs *should* update if we close/open or if main re-renders.
-         // But main.js re-renders EVERYTHING on notify. So this modal might disappear or reset?
-         // Store.js implementation: notify() calls render() in main.js. 
-         // render() sets innerHTML of app. This DESTROYS the modal state (like focus or being open).
-         // This is a flaw in the current cheap render-loop.
-         // FIX: We need to persist modal state or re-open it.
-         // For now, let's assume the user has to re-open it to see changes or we rely on the fact that 
-         // the main render loop destroys DOM.
        } catch(e) {
          alert('Invalid JSON');
        }

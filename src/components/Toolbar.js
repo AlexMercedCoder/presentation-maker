@@ -5,7 +5,7 @@ export const Toolbar = {
     return `
       <div class="toolbar">
         <div class="toolbar-group">
-          <strong>PresoMaker</strong>
+          <strong>MercedSlides</strong>
         </div>
         <div class="toolbar-group">
           <button id="home-btn" class="tool-btn" title="Back to Library">🏠</button>
@@ -14,8 +14,20 @@ export const Toolbar = {
             <option value="title">Title Only</option>
             <option value="title-body">Title + Body</option>
             <option value="hero">Hero (Full)</option>
+            <option value="statement">Statement (Huge)</option>
             <option value="split-diagonal">Split Diagonal</option>
+            <option value="photo-grid">Photo Grid (2x2)</option>
             <option value="stats">Statistics</option>
+            <option value="timeline">Timeline</option>
+            <option value="venn">Venn Diagram</option>
+            <option value="funnel">Funnel</option>
+            <option value="pyramid">Pyramid</option>
+            <option value="swot">SWOT Matrix</option>
+            <option value="team">Team</option>
+            <option value="video">Video Placeholder</option>
+            <option value="kanban">Kanban Board</option>
+            <option value="agenda">Agenda</option>
+            <option value="chart">Chart</option>
             <option value="quote">Quote</option>
             <option value="gallery">Gallery</option>
             <option value="code">Code Block</option>
@@ -33,14 +45,16 @@ export const Toolbar = {
           <button id="redo-btn" class="tool-btn" title="Redo">↷</button>
           <button id="qr-btn" class="tool-btn">QR Code</button>
           <button id="theme-toggle-btn" class="tool-btn">Preset: ${store.theme}</button>
+          <button id="theme-random-toolbar-btn" class="tool-btn" title="Randomize Theme">🎲</button>
           <button id="theme-edit-btn" class="tool-btn">🎨 Customize</button>
           <button id="export-json-btn" class="tool-btn">Export JSON</button>
-          <button id="export-pdf-btn" class="tool-btn">Export PDF</button>
+          <button id="export-pdf-btn" class="tool-btn">PDF</button>
+          <button id="export-pptx-btn" class="tool-btn">PPTX</button>
           <label class="tool-btn">
             Import JSON
             <input type="file" id="import-json-input" accept=".json" style="display: none;">
           </label>
-          <button id="present-btn" class="tool-btn" style="background: #10b981; color: white;">▶ Present</button>
+          <button id="present-btn" class="tool-btn" style="background: #10b981; color: white;" title="Start Presentation (Press 'P' for Console)">▶ Present</button>
         </div>
       </div>
     `;
@@ -59,6 +73,18 @@ export const Toolbar = {
       const currentIdx = themes.indexOf(store.theme);
       const nextTheme = themes[(currentIdx + 1) % themes.length];
       store.setTheme(nextTheme);
+    });
+
+    // Theme Randomizer (Magic Wand)
+    container.querySelector('#theme-random-toolbar-btn').addEventListener('click', () => {
+         import('../utils/colors').then(({ ColorUtils }) => {
+            const theme = ColorUtils.generateRandomTheme();
+            store.setCustomThemeProperty('bg', theme.bg);
+            store.setCustomThemeProperty('text', theme.text);
+            store.setCustomThemeProperty('primary', theme.primary);
+            store.setCustomThemeProperty('accent', theme.accent);
+            store.setCustomThemeProperty('font', theme.font);
+         });
     });
 
     // Edit Theme
@@ -119,7 +145,7 @@ export const Toolbar = {
     container.querySelector('#export-pdf-btn').addEventListener('click', async () => {
       const btn = container.querySelector('#export-pdf-btn');
       const originalText = btn.innerText;
-      btn.innerText = 'Generating...';
+      btn.innerText = '...';
       btn.disabled = true;
       document.body.style.cursor = 'wait';
 
@@ -133,6 +159,21 @@ export const Toolbar = {
         btn.disabled = false;
         document.body.style.cursor = 'default';
       }
+    });
+
+    // Export PPTX
+    container.querySelector('#export-pptx-btn').addEventListener('click', async () => {
+       const btn = container.querySelector('#export-pptx-btn');
+       btn.innerText = '...';
+       try {
+         const { exportToPPTX } = await import('../utils/pptxExport');
+         exportToPPTX(store.slides, store.theme);
+       } catch(e) {
+         console.error(e);
+         alert('PPTX Export failed');
+       } finally {
+         btn.innerText = 'PPTX';
+       }
     });
 
     // Import JSON

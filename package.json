@@ -12,8 +12,10 @@
     "vite": "^7.2.4"
   },
   "dependencies": {
+    "highlight.js": "^11.11.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.0.0",
+    "pptxgenjs": "^4.0.1",
     "qrcode": "^1.5.4",
     "uuid": "^13.0.0"
   }
